@@ -48,8 +48,8 @@ class SPOSSampler(Sampler):
 
 
 # test spos
-'''if __name__ == '__main__':
+if __name__ == '__main__':
     alphas = torch.randn([14,8])
     sampler = SPOSSampler()
     sampled_alphas = sampler.sample(alphas, sample_subset=True)
-    print(sampled_alphas)'''
+    print(sampled_alphas)
