@@ -44,7 +44,7 @@ class SPOSSampler(Sampler):
             Returns: torch.Tensor: one-hot encoded tensor of the same shape as alpha
         '''
 
-        raise NotImplementedError
+        pass
 
 
 # test spos
