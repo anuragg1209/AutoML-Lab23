@@ -5,16 +5,16 @@ import numpy as np
 
 class SPOSSampler(Sampler):
 
-    def sample_epoch(self, alphas_list, sample_subset=False):
+    def sample_epoch(self, alphas_list):
         sampled_alphas_list = []
         for alpha in alphas_list:
-            sampled_alphas_list.append(self.sample(alpha, sample_subset))
+            sampled_alphas_list.append(self.sample(alpha))
         return sampled_alphas_list
 
-    def sample_step(self, alphas_list, sample_subset=False):
+    def sample_step(self, alphas_list):
         sampled_alphas_list = []
         for alpha in alphas_list:
-            sampled_alphas_list.append(self.sample(alpha, sample_subset))
+            sampled_alphas_list.append(self.sample(alpha))
         return sampled_alphas_list
 
     def sample_indices(self, num_steps, num_selected):
@@ -43,13 +43,31 @@ class SPOSSampler(Sampler):
             alpha (torch.Tensor): alpha values of any shape
             Returns: torch.Tensor: one-hot encoded tensor of the same shape as alpha
         '''
+        sampled_alphas = torch.zeros_like(alpha)
 
-        pass
+        if len(alpha.shape) == 1:
+            # print("Inside 1D Case")
+            # Sample index along the last dimension
+            sampled_index = np.random.choice(alpha.shape[-1], size=1, replace=False)
+
+            # Mark the sampled index as 1
+            sampled_alphas[sampled_index] = 1
+
+        else:
+            # print("Inside 2D Case")
+            for row in range(len(alpha)):
+                # Sample index along the last dimension
+                sampled_index = np.random.choice(alpha.shape[-1], size=1, replace=False)
+
+                # Mark the sampled index as 1
+                sampled_alphas[row][sampled_index] = 1
+
+        return sampled_alphas
 
 
 # test spos
 if __name__ == '__main__':
     alphas = torch.randn([14,8])
     sampler = SPOSSampler()
-    sampled_alphas = sampler.sample(alphas, sample_subset=True)
+    sampled_alphas = sampler.sample(alphas)
     print(sampled_alphas)

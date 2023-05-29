@@ -66,7 +66,7 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     model.sampler.set_taus(0.1, 10)
     model.sampler.set_total_epochs(args.train_iters//100)
-    alphas = model.sampler.sample_epoch(model.get_arch_parameters(),sample_subset=False)
+    alphas = model.sampler.sample_epoch(model.get_arch_parameters())
     print("Args: ", args)
     for i in range(args.train_iters):
         xb, yb = get_batch('train', train_data, val_data,
@@ -90,4 +90,4 @@ if __name__ == "__main__":
             for param in arch_params:
                 print(torch.nn.functional.softmax(param, dim=-1))
             torch.save(model.state_dict(), model_save_path)
-        alphas = model.sampler.sample_epoch(model.get_arch_parameters(),sample_subset=False)
+        alphas = model.sampler.sample_epoch(model.get_arch_parameters())
