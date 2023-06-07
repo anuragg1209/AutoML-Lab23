@@ -193,9 +193,10 @@ class RandomSearch(NASOptimizer):
         Run random search for n_iters function evaluations.
         """
         for i in range(n_iters):
+            print(f"Epoch {i}/{n_iters}")
             config, arch_params = self.sample_random_config(self.model)
             self.train_and_eval(config, arch_params, self.model)
 
 
 rs = RandomSearch("model_one_shot_spos_pretrained.pth")
-rs.optimize(10000)
+rs.optimize(100) # setting n_iters = 100 

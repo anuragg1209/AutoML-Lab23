@@ -110,7 +110,39 @@ class BigramLanguageModel(nn.Module):
         mlp_ratio = self.choices["mlp_ratio"]
         arch_param_dict = {}
         config = {}
-        raise NotImplementedError
+
+        config["num_layers"] = np.random.choice(num_layers)
+        config["embed_dims"] = np.random.choice(embed_dims)
+        config["num_heads"] =  np.random.choice(num_heads, size=config["num_layers"]).tolist()
+        config["mlp_ratio"] =  np.random.choice(mlp_ratio, size=config["num_layers"]).tolist()
+        # print(f"CONFIG VALUES:: {config.values()}")
+        # print(f"GET ARCH PARA::  {self.get_arch_parameters()}")
+
+        one_hot_encoded = {}
+        one_hot_encoded["num_layers"] = torch.zeros(len(num_layers))
+        one_hot_encoded["embed_dims"] = torch.zeros(len(embed_dims))
+        one_hot_encoded["num_heads"] = torch.zeros(config["num_layers"], len(num_heads))
+        one_hot_encoded["mlp_ratio"] = torch.zeros(config["num_layers"], len(mlp_ratio))
+
+        for i, num in enumerate(num_layers):
+            if num == config["num_layers"]:
+                one_hot_encoded["num_layers"][i] = 1
+                break
+        
+        for i, num in enumerate(embed_dims):
+            if num == config["embed_dims"]:
+                one_hot_encoded["embed_dims"][i] = 1
+                break
+
+        for i in range(config["num_layers"]):
+            one_hot_encoded["num_heads"][i][num_heads.index(config["num_heads"][i])] = 1
+            one_hot_encoded["mlp_ratio"][i][mlp_ratio.index(config["mlp_ratio"][i])] = 1
+        
+        arch_param_dict["num_layers"] = one_hot_encoded["num_layers"]
+        arch_param_dict["embed_dim"] = one_hot_encoded["embed_dims"]
+        arch_param_dict["num_heads"] =  one_hot_encoded["num_heads"]
+        arch_param_dict["mlp_ratio"] =  one_hot_encoded["mlp_ratio"]
+
         return config, arch_param_dict
 
     def _init_arch_parameters(self):
@@ -169,7 +201,8 @@ class BigramLanguageModel(nn.Module):
             torch.arange(T).to(idx.device), arch_params_sampled_dict["embed_dim"], self.position_embedding_table_list, self.position_embedding_table)
         x = tok_emb + pos_emb  # (B,T,C)
         depth_output_list = []
-        for i in range(max(self.choices["num_layers"])):
+        hot_index = np.where(arch_params["num_layers"] == 1)[0][0]
+        for i in range(self.choices["num_layers"][hot_index]):
             x = self.blocks[i](x, i, arch_params_sampled_dict)
             if i+1 in self.choices["num_layers"]:
                 depth_output_list.append(x)
@@ -209,7 +242,8 @@ class BigramLanguageModel(nn.Module):
 
 
 # Test model
-'''choices = {}
+'''
+choices = {}
 choices["num_layers"] = [1, 2, 3]
 choices["embed_dim"] = [128, 256, 512]
 choices["num_heads"] = [2, 4, 8]
@@ -224,4 +258,5 @@ idx = torch.randint(0, 100, (32, 128))
 targets = torch.cat((idx[:, 1:], idx[:, 0:1]), dim=1)
 # forward pass
 logits, loss = model(idx, targets=targets)
-print(logits.shape, loss)'''
+print(logits.shape, loss)
+'''
