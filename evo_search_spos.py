@@ -258,12 +258,13 @@ class EvolutionSearcher(object):
         while len(self.candidates) < num:
             cand = cand_iter[i]
             arch = arch_iter[i]
+            i += 1
             if not self.is_legal(cand):
                 continue
             self.candidates.append(cand)
             self.arch_params.append(arch)
             print('random {}/{}'.format(len(self.candidates), num))
-            i += 1
+           
         print('random_num = {}'.format(len(self.candidates)))
 
     def get_mutation(self, k, mutation_num, m_prob, s_prob):
@@ -283,10 +284,14 @@ class EvolutionSearcher(object):
             # depth
             if random_s < s_prob: # check is depth is mutated
                 # TODO : sample new depth
+                candidates = list(filter(lambda num: num != depth, self.choices["num_layers"]))
+                new_depth = np.random.choice(candidates)
 
                 if new_depth > depth:
-                  # TODO: sample new number of heads and new mlp ratio for the new layers (new_depth - depth)
-                  raise NotImplementedError
+                    # TODO: sample new number of heads and new mlp ratio for the new layers (new_depth - depth)
+                    for j in range(depth, new_depth):
+                        num_heads.append(np.random.choice(self.choices["num_heads"]))
+                        mlp_ratio.append(np.random.choice(self.choices["mlp_ratio"]))
                 else:
                     #remove the last layers (depth - new_depth)
                     mlp_ratio = mlp_ratio[:new_depth]
@@ -298,20 +303,25 @@ class EvolutionSearcher(object):
                 random_s = random.random()
                 if random_s < m_prob:
                     # TODO: sample new mlp ratio for the ith layer
-                    raise NotImplementedError
+                    mlp_candidates = list(filter(lambda num: num != mlp_ratio[i], self.choices["mlp_ratio"]))
+                    mlp_ratio[i] = np.random.choice(mlp_candidates)
+                    
 
             # num_heads
             for i in range(depth):
                 random_s = random.random()
                 if random_s < m_prob:
                     # TODO: sample new num heads for the ith layer
-                    raise NotImplementedError
+                    num_head_candidates = list(filter(lambda num: num != num_heads[i], self.choices["num_heads"]))
+                    num_heads[i] = np.random.choice(num_head_candidates)
 
             # embed_dim
             random_s = random.random()
             if random_s < s_prob:
                 # TODO: sample new embedding dimension
-                raise NotImplementedError
+                embed_dim_candidate = list(filter(lambda num: num != embed_dim, self.choices["embed_dim"]))
+                embed_dim = np.random.choice(embed_dim_candidate)
+
             # mutated candidate
             result_cand = [depth] + [embed_dim] + num_heads + mlp_ratio
             #print(result_cand)
@@ -325,12 +335,13 @@ class EvolutionSearcher(object):
             max_iters -= 1
             cand = cand_iter[i]
             arch = arch_iter[i]
+            i += 1
             if not self.is_legal(cand):
                 continue
             res.append(cand)
             res_arch.append(arch)
             print('mutation {}/{}'.format(len(res), mutation_num))
-            i += 1
+            
 
         print('mutation_num = {}'.format(len(res)))
         return res, res_arch
@@ -346,15 +357,20 @@ class EvolutionSearcher(object):
         def random_func():
 
             # choose parent 1 (p1) and parent 2 (p2) randomly from top k
-            p1 = random.choice(self.keep_top_k[k])
-            p2 = random.choice(self.keep_top_k[k])
-            output = None # TODO
+            def get_parents_from_top_k():
+                p1_, p2_ = np.random.permutation(len(self.keep_top_k[k]))[:2]
+                return self.keep_top_k[k][p1_], self.keep_top_k[k][p2_]
+            
+            p1, p2 = get_parents_from_top_k()
+            output = [] # TODO
             max_iters_tmp = 50
             while len(p1) != len(p2) and max_iters_tmp > 0:
                 max_iters_tmp -= 1
                 # TODO: choose parent 1 (p1) and parent 2 (p2) randomly from top k until they have the same length
-                raise NotImplementedError
+                p1, p2 = get_parents_from_top_k()
             # TODO: randomly chose the config from p1 and p2 for every architecture choice to form a new config
+            output = tuple(np.random.choice([p1[i], p2[i]]) for i in range(len(p1)))
+
             arch_param_dict = get_arch_param_from_cand(output, self.choices)
             return output, arch_param_dict
 
@@ -364,12 +380,13 @@ class EvolutionSearcher(object):
             max_iters -= 1
             cand = cand_iter[i]
             arch = arch_iter[i]
+            i += 1
             if not self.is_legal(cand):
                 continue
             res_cand.append(cand)
             res_archs.append(arch)
             print('crossover {}/{}'.format(len(res_cand), crossover_num))
-            i += 1
+            
 
         print('crossover_num = {}'.format(len(res_cand)))
         return res_cand, res_archs
