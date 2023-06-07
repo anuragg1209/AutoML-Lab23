@@ -7,7 +7,7 @@ In this task we will train a supernet using single-path NAS https://arxiv.org/ab
 4. Now we will run evolutionary-search on the pre-trained superent provided to you. Complete the ```TODOS``` in the mutation and crossover blocks and run the evolutionary search for 20 epochs. - 20 points
 
 # Final deliverables for the exercise are 
-1. The complete code with the TODOs addressed
-2. The pre-trained spos supernet trained for 1000 epochs
-3. The incumbent trajectory for Random search. Report the validated error upon convergence
-4. Saved checkpoint from the evolutionary search
+1. The complete code with the TODOs addressed -----> DONE 
+2. The pre-trained spos supernet trained for 1000 epochs -----> DONE...SAVED
+3. The incumbent trajectory for Random search. Report the validated error upon convergence  ----> The resulting incumbent error is 1.90 and test error is 2.10. 
+4. Saved checkpoint from the evolutionary search ------> Checkpoints can be found in evo_checkpoint folder. There are 22 checkpoints. 
